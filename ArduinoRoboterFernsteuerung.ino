@@ -4,6 +4,8 @@
 
 //define when RONs Board
 #define RON
+//define when DEBUG
+//#define DEBUG
 
 //define Threshold
 #define Threshold 30
@@ -17,18 +19,19 @@
 #define PWM_MOTOR_L 6
 #define PWM_MOTOR_R 5
 #ifndef RON
-#define PWM_PIN_LR 0
-#define PWM_PIN_T 13
+#define PWM_PIN_LR 13
+#define PWM_PIN_T 0
 #endif //not RON
 #ifdef RON
 #define PWM_PIN_LR 14
 #define PWM_PIN_T 15
 #endif //RON
 
-#define MOTOR_R_A 5
-#define MOTOR_R_B 7
-#define MOTOR_L_A 0
-#define MOTOR_L_B 6
+
+#define MOTOR_R_A 0
+#define MOTOR_R_B 6
+#define MOTOR_L_A 5
+#define MOTOR_L_B 7
 
 int pwm_value_LR;
 int pwm_value_T;
@@ -45,44 +48,49 @@ void setup() {
   pinMode(MOTOR_R_B, OUTPUT);
   pinMode(MOTOR_L_A, OUTPUT);
   pinMode(MOTOR_L_B, OUTPUT);
-  Serial.begin(115200);
+  #ifdef DEBUG
+  Serial.begin(9600);
+  #endif //DEBUG
 }
 
 void loop() {
-  pwm_value_T = pulseIn(PWM_PIN_T, HIGH)-1500;
-  pwm_value_LR = pulseIn(PWM_PIN_LR, HIGH)-1500;
+  pwm_value_T = (pulseIn(PWM_PIN_T, HIGH)-1500)/2;
+  pwm_value_LR = (pulseIn(PWM_PIN_LR, HIGH)-1500)/2;
   speed_r = pwm_value_T + pwm_value_LR;
   speed_l = pwm_value_T - pwm_value_LR;
+  #ifdef DEBUG
+  Serial.print("speed_l:");
   Serial.println(speed_l);
+  Serial.print("speed_r: ");
   Serial.println(speed_r);
-  bool forward;
-  if (pwm_value_T > Threshold)
-    forward = true;
-  else if (pwm_value_T < -Threshold)
-    forward = false;
-  
-  if(speed_r > Threshold && forward){
+  Serial.print("pwm_value_T: ");
+  Serial.println(pwm_value_T);
+  Serial.print("pwm_value_LR: ");
+  Serial.println(pwm_value_LR);
+  delay(1000);
+  #endif //DEBUG
+  if(speed_r > Threshold){
      shiftWrite(MOTOR_R_A, HIGH);
      shiftWrite(MOTOR_R_B, LOW);
-     analogWrite(PWM_MOTOR_R, min(speed_r / 2, 255));
+     analogWrite(PWM_MOTOR_R, min(speed_r, 255));
  
-     } else if(speed_r < -Threshold && !forward) {
+     } else if(speed_r < -Threshold) {
       shiftWrite(MOTOR_R_A, LOW);
       shiftWrite(MOTOR_R_B, HIGH);
-      analogWrite(PWM_MOTOR_R, min(-speed_r / 2, 255));
+      analogWrite(PWM_MOTOR_R, min(-speed_r, 255));
      } else {
         analogWrite(PWM_MOTOR_R, 0);
       }
 
-   if(speed_l > Threshold && forward){
+   if(speed_l > Threshold){
      shiftWrite(MOTOR_L_A, HIGH);
      shiftWrite(MOTOR_L_B, LOW);
-     analogWrite(PWM_MOTOR_L, min(speed_l / 2, 255));
+     analogWrite(PWM_MOTOR_L, min(speed_l, 255));
  
-     } else if(speed_l < -Threshold && !forward) {
+     } else if(speed_l < -Threshold) {
       shiftWrite(MOTOR_L_A, LOW);
       shiftWrite(MOTOR_L_B, HIGH);
-      analogWrite(PWM_MOTOR_L, min(-speed_l / 2, 255));
+      analogWrite(PWM_MOTOR_L, min(-speed_l, 255));
       
      } else {
         analogWrite(PWM_MOTOR_L, 0);
